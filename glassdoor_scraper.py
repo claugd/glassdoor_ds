@@ -13,22 +13,35 @@ import pandas as pd
 
 def get_jobs(keyword, num_jobs, verbose, path, slp_time):
     
-    
-    
+      
     #Initializing the webdriver
+   
     options = webdriver.ChromeOptions()
-    
+
     #Uncomment the line below if you'd like to scrape without a new Chrome window every time.
     #options.add_argument('headless')
        
-    driver = webdriver.Chrome(executable_path = path, options=options)
+    driver = webdriver.Chrome(executable_path =path, options=options)
     driver.set_window_size(1120, 1000)
 
     url = "https://www.glassdoor.com/Job/jobs.htm?suggestCount=0&suggestChosen=false&clickSource=searchBtn&typedKeyword="+keyword+"&sc.keyword="+keyword+"&locT=&locId=&jobType="
     driver.get(url)
     jobs = []
     
-        
+    job_buttons = driver.find_elements_by_class_name("react-job-listing") 
+    
+    print ("Len of Job Buttons", len(job_buttons))
+   
+    # This first click is to cause the glassdoor window to show up
+    job_buttons[0].click()  #You might 
+    
+    ## Close pop up window   
+    time.sleep(2)
+    try : 
+         driver.find_element_by_class_name('SVGInline-svg.modal_closeIcon-svg').click() #clicking to the X.
+    except NoSuchElementException:
+         pass
+     
     page = 2
     
     while len(jobs) < num_jobs:  #If true, should be still looking for new jobs.
@@ -38,40 +51,19 @@ def get_jobs(keyword, num_jobs, verbose, path, slp_time):
         #Or, wait until the webpage is loaded, instead of hardcoding it.
         time.sleep(slp_time)
         
-        if len(jobs) >= num_jobs:
-            break
-        #Test for the "Sign Up" prompt and get rid of it.
-        try:
-            driver.find_element_by_class_name("selected").click()
-            print("selected")
-        except ElementClickInterceptedException:
-            print("not selected")
-            pass
-
-        time.sleep(1)
+        
+        #time.sleep(1)
         
         #Going through each job in this page
         #jl for Job Listing. These are the buttons we're going to click.
-        job_buttons = driver.find_elements_by_class_name("react-job-listing") 
-        print ("Len of Job Buttons", len(job_buttons))
-        
-        # This first click is to cause the glassdoor window to show up
-        job_buttons[0].click()  #You might 
-        
-        ## Close pop up window   
-        time.sleep(2)
-        try : 
-             driver.find_element_by_class_name('SVGInline-svg.modal_closeIcon-svg').click() #clicking to the X.
-        except NoSuchElementException:
-             pass
-        
         scrap_glassdoor_page(driver, jobs, job_buttons)
         
         #Clicking on the "next page" button
         try:
             page += 1
         
-            driver.find_element_by_xpath('//*[@id="MainCol"]/div[2]/div/div[1]/button['+page+']').click()
+            driver.find_element_by_xpath('//*[@id="MainCol"]/div[2]/div/div[1]/button['+str(page)+']').click()
+            job_buttons = driver.find_elements_by_class_name("react-job-listing") 
             
         except NoSuchElementException:
             print("Scraping terminated before reaching target number of jobs. Needed {}, got {}.".format(num_jobs, len(jobs)))
@@ -81,11 +73,15 @@ def get_jobs(keyword, num_jobs, verbose, path, slp_time):
 
 def scrap_glassdoor_page(driver, jobs, job_buttons):
     
+    num_page = 0
+    
     for job_button in job_buttons:  
-
-        #print("Progress: {}".format("" + str(len(jobs)) + "/" + str(num_jobs)))        
         
-        job_button.click()  #You might 
+        #if len(jobs) >= len(job_buttons):
+        #    return
+        
+        print("Progress: {}".format("" + str(len(jobs)) + "/" + str(len(job_buttons))))        
+        
         time.sleep(1)
         
         collected_successfully = False
@@ -95,8 +91,9 @@ def scrap_glassdoor_page(driver, jobs, job_buttons):
             try:
               
                   print("collected success", len(jobs))
-              
-                  page_position = str(len(jobs)+1)
+                  
+                  num_page += 1
+                  page_position = str(num_page)
               
                   company_name = driver.find_element_by_xpath('//*[@id="MainCol"]/div[1]/ul/li['+page_position+']/div[2]/div[1]/a/span').text
                   print("Company Name: {}".format(company_name))
@@ -117,11 +114,15 @@ def scrap_glassdoor_page(driver, jobs, job_buttons):
                  time.sleep(5)
 
             try:
-                                  
-                  salary_estimate = driver.find_element_by_xpath('//*[@id="MainCol"]/div[1]/ul/li['+page_position+']/div[2]/div[3]/div[1]/span/').value_of_css_property()
+                
+                  salary_estimate = driver.find_element_by_xpath('//*[@id="MainCol"]/div[1]/ul/li['+page_position+']/div[2]/div[3]/div[1]/span/text()').text
+                    
+                  #salary_estimate = driver.find_element_by_xpath('//*[@id="MainCol"]/div[1]/ul/li['+page_position+']/div[2]/div[3]/div[1]/span/').text
             except NoSuchElementException:
                   salary_estimate = -1 #You need to set a "not found value. It's important."
-              
+            
+            print("Salary: {}".format(salary_estimate))         
+            
             try:
                               
                   rating = driver.find_element_by_xpath('//*[@id="employerStats"]/div[1]/div[1]').text
@@ -189,4 +190,4 @@ def scrap_glassdoor_page(driver, jobs, job_buttons):
         "Revenue" : revenue})
         #add job to jobs
         
-        return 
+    return 
