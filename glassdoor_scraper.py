@@ -51,18 +51,18 @@ def get_jobs(keyword, num_jobs, verbose, path, slp_time):
         #Or, wait until the webpage is loaded, instead of hardcoding it.
         time.sleep(slp_time)
         
-        
-        #time.sleep(1)
-        
+       
+      
         #Going through each job in this page
         #jl for Job Listing. These are the buttons we're going to click.
-        scrap_glassdoor_page(driver, jobs, job_buttons)
+        scrap_glassdoor_page(driver, jobs, job_buttons,num_jobs)
         
-        #Clicking on the "next page" button
+        #proceed to "next page" results 
         try:
             page += 1
         
             driver.find_element_by_xpath('//*[@id="MainCol"]/div[2]/div/div[1]/button['+str(page)+']').click()
+            time.sleep(2)
             job_buttons = driver.find_elements_by_class_name("react-job-listing") 
             
         except NoSuchElementException:
@@ -71,113 +71,94 @@ def get_jobs(keyword, num_jobs, verbose, path, slp_time):
 
     return pd.DataFrame(jobs)  #This line converts the dictionary object into a pandas DataFrame.
 
-def scrap_glassdoor_page(driver, jobs, job_buttons):
+
+def scrap_glassdoor_page(driver, jobs, job_buttons,num_jobs):
     
-    num_page = 0
+    page_position = 0
     
     for job_button in job_buttons:  
         
-        #if len(jobs) >= len(job_buttons):
-        #    return
+        if len(jobs) >= num_jobs :
+            return
         
         print("Progress: {}".format("" + str(len(jobs)) + "/" + str(len(job_buttons))))        
         
-        time.sleep(1)
+        job_button.click()
         
-        collected_successfully = False
-        
-        while not collected_successfully:
-            
-            try:
+        time.sleep(2)
+
+               
+        try:
               
                   print("collected success", len(jobs))
+                 
+                  page_position += 1
+                  srt_page_position = str(page_position)
                   
-                  num_page += 1
-                  page_position = str(num_page)
-              
-                  company_name = driver.find_element_by_xpath('//*[@id="MainCol"]/div[1]/ul/li['+page_position+']/div[2]/div[1]/a/span').text
+                  company_name = driver.find_element_by_xpath('//*[@id="MainCol"]/div[1]/ul/li['+srt_page_position+']/div[2]/div[1]/a/span').text
                   print("Company Name: {}".format(company_name))
             
-                  location = driver.find_element_by_xpath('//*[@id="MainCol"]/div[1]/ul/li['+page_position+']/div[2]/div[2]/span').text
+                  location = driver.find_element_by_xpath('//*[@id="MainCol"]/div[1]/ul/li['+srt_page_position+']/div[2]/div[2]/span').text
                   print("Location: {}".format(location))
-                  #job_title = driver.find_element_by_xpath('.//div[contains(@class, "title")]').text
+                               
+                  job_title = driver.find_element_by_xpath('//*[@id="MainCol"]/div[1]/ul/li['+srt_page_position+']/div[2]/a/span').text
                   
-                  job_title = driver.find_element_by_xpath('//*[@id="MainCol"]/div[1]/ul/li['+page_position+']/div[2]/a/span').text
-                  
-                                     
-                  #data_id = driver.find_element_by_class_name("react-job-listing").get_attribute('data-id')
-                  #job_description = driver.find_element_by_xpath('//*[@id="JobDesc+'+data_id+']/div').text
-                  #job_description = driver.find_element_by_xpath('.//div[@class="jobDescriptionContent desc"]').text
+                                    
+                  job_description = driver.find_element_by_xpath('.//div[@class="jobDescriptionContent desc"]').text
     
-                  collected_successfully = True
-            except:
-                 time.sleep(5)
+        except:
+                  time.sleep(5)
 
-            try:
-                
-                  salary_estimate = driver.find_element_by_xpath('//*[@id="MainCol"]/div[1]/ul/li['+page_position+']/div[2]/div[3]/div[1]/span/text()').text
-                    
-                  #salary_estimate = driver.find_element_by_xpath('//*[@id="MainCol"]/div[1]/ul/li['+page_position+']/div[2]/div[3]/div[1]/span/').text
-            except NoSuchElementException:
+        try:
+                salary_estimate = driver.find_element_by_xpath('//*[@id="MainCol"]/div[1]/ul/li['+srt_page_position+']/div[2]/div[3]/div[1]/span').text
+                   
+        except NoSuchElementException:
                   salary_estimate = -1 #You need to set a "not found value. It's important."
             
-            print("Salary: {}".format(salary_estimate))         
+        print("Salary: {}".format(salary_estimate))         
             
-            try:
+        try:
                               
-                  rating = driver.find_element_by_xpath('//*[@id="employerStats"]/div[1]/div[1]').text
-            except NoSuchElementException:
+                  rating = driver.find_element_by_xpath('//*[@id="MainCol"]/div[1]/ul/li['+srt_page_position+']/div[1]/span').text
+        except NoSuchElementException:
                   rating = -1 #You need to set a "not found value. It's important."
         
-              
-            #Going to the Company tab...
-            #clicking on this:
-            #<div class="tab" data-tab-type="overview"><span>Company</span></div>
-            try:
-                  driver.find_element_by_xpath('//*[@id="MainCol"]/div[1]/ul/li['+page_position+']').click()
-            except NoSuchElementException:
-                 size = -1
-                 founded = -1
-                 type_of_ownership = -1
-                 industry = -1
-                 sector = -1
-                 revenue = -1
-                   
-             
-            try:
+                      
+        try:
+            
                   size = driver.find_element_by_xpath('//*[@id="EmpBasicInfo"]/div[1]/div/div[1]/span[2]').text
-            except NoSuchElementException:
+        except NoSuchElementException:
                   size = -1
         
-            try:
-                 founded = driver.find_element_by_xpath('//*[@id="EmpBasicInfo"]/div[1]/div/div[2]/span[2]').text
-            except NoSuchElementException:
+        try:
+                      founded = driver.find_element_by_xpath('//*[@id="EmpBasicInfo"]/div[1]/div/div[2]/span[2]').text
+        except NoSuchElementException:
                       founded = -1
         
-            try:
+        try:
                       type_of_ownership = driver.find_element_by_xpath('//*[@id="EmpBasicInfo"]/div[1]/div/div[3]/span[2]').text
-            except NoSuchElementException:
+        except NoSuchElementException:
                       type_of_ownership = -1
         
-            try:
-                      industry = driver.find_element_by_xpath('//*[@id="EmpBasicInfo"]/div[1]/div/div[4]/span[2]').text
-            except NoSuchElementException:
+        try:
+                industry = driver.find_element_by_xpath('//*[@id="EmpBasicInfo"]/div[1]/div/div[4]/span[2]').text
+        except NoSuchElementException:
                       industry = -1
         
-            try:
+        try:
                       sector = driver.find_element_by_xpath('//*[@id="EmpBasicInfo"]/div[1]/div/div[4]/span[2]').text
-            except NoSuchElementException:
+        except NoSuchElementException:
                       sector = -1
         
-            try:
+        try:
                       revenue = driver.find_element_by_xpath('//*[@id="EmpBasicInfo"]/div[1]/div/div[6]/span[2]').text
-            except NoSuchElementException:
+        except NoSuchElementException:
                       revenue = -1
         
                
         jobs.append({"Job Title" : job_title,
         "Salary Estimate" : salary_estimate,
-        #"Job Description" : job_description,
+        "Job Description" : job_description,
         "Rating" : rating,
         "Company Name" : company_name,
         "Location" : location,

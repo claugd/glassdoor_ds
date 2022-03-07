@@ -10,7 +10,7 @@ path = './chromedriver'
 import pandas as pd
 import glassdoor_scraper as gs
 
-df = gs.get_jobs("data scientist", 40, False, path, 8)
+df = gs.get_jobs("data scientist", 45, False, path, 7)
 
 print(df)
 
