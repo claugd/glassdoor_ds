@@ -7,11 +7,10 @@ Created on Mon Feb 28 18:52:23 2022
 """
 path = './chromedriver'
 
-import pandas as pd
 import glassdoor_scraper as gs
 
-df = gs.get_jobs("data scientist", 5, False, path, 7)
+df = gs.get_jobs("data scientist", 1000, True, path, 7)
 
-print(df)
+df.to_csv('glassdoor_jobs.csv', index = False)
 
 
