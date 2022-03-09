@@ -27,6 +27,7 @@ def get_jobs(keyword, num_jobs, verbose, path, slp_time):
     driver.get(url)
     jobs = []
     
+    #Buttons to click. Jobs from the first search page 
     job_buttons = driver.find_elements_by_class_name("react-job-listing") 
     if verbose: 
         print ("Len of Job Buttons", len(job_buttons))
@@ -41,34 +42,30 @@ def get_jobs(keyword, num_jobs, verbose, path, slp_time):
     except NoSuchElementException:
          pass
      
-    #This page number refers to the number of sucessive pages of 30 jobs listings
-    #matches the search query
-    page = 2
+    #next_page_pointer points to the page to scrap, each page 30 jobs
+    next_page_pointer = 2
     
     while len(jobs) < num_jobs:  #If true, should be still looking for new jobs.
         
      
         #Let the page load. Change this number based on your internet speed.
-        #Or, wait until the webpage is loaded, instead of hardcoding it.
         time.sleep(slp_time)
-              
-      
+            
         #Going through each job in this page
-        #jl for Job Listing. These are the buttons we're going to click.
         scrap_glassdoor_page(driver, jobs, job_buttons,num_jobs,verbose)
         
       
         try:
-            #click on the arrow to the right, so more page numbers will showup 
-            #driver.find_element_by_xpath('//*[@id="MainCol"]/div[2]/div/div[1]/button[7]').click()
-            #time.sleep(2)
-            
+                    
             #proceed to "next page" search results 
-            if page < 5 :
-                page += 1
-            
-            print("page num",page)
-            driver.find_element_by_xpath('//*[@id="MainCol"]/div[2]/div/div[1]/button['+str(page)+']').click()
+            #compares with 5 because the xpath button number changes 
+            #when button[5] is clicked, it assume position of button[4] after reload 
+            if next_page_pointer < 5 :
+                next_page_pointer += 1
+            if verbose: 
+                print("page num",next_page_pointer)
+                
+            driver.find_element_by_xpath('//*[@id="MainCol"]/div[2]/div/div[1]/button['+str(next_page_pointer)+']').click()
             time.sleep(2)
                                  
             job_buttons = driver.find_elements_by_class_name("react-job-listing") 
@@ -120,7 +117,7 @@ def scrap_glassdoor_job(driver,job_button,page_position,verbose) :
     if verbose:
         print("Location: {}".format(location))
     
-              
+          
     job_description = try_catch_find_by_xpath(driver,'.//div[@class="jobDescriptionContent desc"]')
    
     salary_estimate = try_catch_find_by_xpath(driver,'//*[@id="MainCol"]/div[1]/ul/li['+srt_page_position+']/div[2]/div[3]/div[1]/span')
@@ -130,8 +127,7 @@ def scrap_glassdoor_job(driver,job_button,page_position,verbose) :
     rating = try_catch_find_by_xpath(driver,'//*[@id="MainCol"]/div[1]/ul/li['+srt_page_position+']/div[1]/span')
            
     size = try_catch_find_by_xpath(driver,'//*[@id="EmpBasicInfo"]/div[1]/div/div[1]/span[2]')
-   
-    
+       
     founded = try_catch_find_by_xpath(driver,'//*[@id="EmpBasicInfo"]/div[1]/div/div[2]/span[2]')
     
     type_of_ownership = try_catch_find_by_xpath(driver,'//*[@id="EmpBasicInfo"]/div[1]/div/div[3]/span[2]')
