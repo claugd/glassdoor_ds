@@ -65,4 +65,11 @@ df['spark_skill']        = df['Job Description'].apply(lambda x: 1 if 'spark' in
 df['aws_skill']          = df['Job Description'].apply(lambda x: 1 if 'aws' in x.lower() else 0)
 df['excel_skill']        = df['Job Description'].apply(lambda x: 1 if 'excel' in x.lower() else 0)
 
+# Fill NA with blank or -1
+df['Job Title'] = df ['Job Title'].fillna("")
+df['Rating'] = df ['Salary Estimate'].fillna(-1)
+df['Location'] = df ['Location'].fillna("")
+
 df.to_csv("data_cleaned.csv",index = False)
+
+
