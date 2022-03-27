@@ -17,6 +17,7 @@ df = df[df ['Salary Estimate']!= '-1']
 #na is filled with empty string to avoid missing data problems
 df['Salary Estimate'] = df ['Salary Estimate'].fillna("")
 
+
 ## Indicator of Salary Data source and time reference
 df ['per_hour'] = df ['Salary Estimate'].apply(lambda x: 1 if 'per hour' in x.lower() else 0)
 df ['employer_estimate'] = df ['Salary Estimate'].apply(lambda x: 1 if 'employer est.' in x.lower() else 0)
@@ -60,16 +61,17 @@ df['company_age'] = df['Founded'].apply(lambda x: -1 if x == '-1' or pd.isna(x) 
 
 ## Parsing Job Description
 
-df['python_skill'] = df['Job Description'].apply(lambda x: 1 if 'python' in x.lower() else 0)
+df['python_skill']       = df['Job Description'].apply(lambda x: 1 if 'python' in x.lower() else 0)
 df['spark_skill']        = df['Job Description'].apply(lambda x: 1 if 'spark' in x.lower() else 0)
 df['aws_skill']          = df['Job Description'].apply(lambda x: 1 if 'aws' in x.lower() else 0)
 df['excel_skill']        = df['Job Description'].apply(lambda x: 1 if 'excel' in x.lower() else 0)
 
 # Fill NA with blank or -1
-df['Job Title'] = df ['Job Title'].fillna("")
-df['Rating'] = df ['Salary Estimate'].fillna(-1)
-df['Location'] = df ['Location'].fillna("")
-
+df['Job Title'] = df ['Job Title'].fillna("No Title")
+df['Rating'] = df ['Rating'].fillna(0)
+df['Location'] = df ['Location'].fillna("No Location")
+df ['job_state'] = df['job_state'].apply(lambda x: "NO INFO" if x == "" else x)
+df['Salary Estimate'] = df ['Salary Estimate'].apply(lambda x: "NO INFO" if x == "" else x)
+                                                 
 df.to_csv("data_cleaned.csv",index = False)
-
-
+df.isna().sum()
